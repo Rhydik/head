@@ -1,0 +1,195 @@
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+// DOM elements
+const loadingElement = document.getElementById('loading');
+const progressElement = document.getElementById('progress');
+
+// Scene setup
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x222222);
+
+// Camera setup
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1, 3);
+
+// Renderer setup
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.set(1, 1, 1);
+scene.add(directionalLight);
+
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 1.5;
+controls.maxDistance = 5;
+
+// Loading manager
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onStart = () => {
+  loadingElement.style.display = 'block';
+};
+loadingManager.onLoad = () => {
+  loadingElement.style.display = 'none';
+};
+loadingManager.onProgress = (url, loaded, total) => {
+  const percent = Math.round((loaded / total) * 100);
+  progressElement.textContent = `${percent}%`;
+};
+loadingManager.onError = (url) => {
+  console.error('Error loading:', url);
+  loadingElement.textContent = 'Error loading model';
+  loadingElement.style.backgroundColor = 'rgba(255, 0, 0, 0.7)';
+};
+
+// Material types for UI controls
+let materialType = 'basic';
+const vertexColorMeshes = [];
+
+// Load model
+const loader = new GLTFLoader(loadingManager);
+loader.load('/models/gigahead.glb', (gltf) => {
+  console.log('Model loaded successfully:', gltf);
+  
+  const model = gltf.scene;
+  
+  // Center the model
+  const box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  model.position.sub(center);
+  
+  // Set model name
+  model.name = 'gigahead';
+  
+  // Process all meshes
+  model.traverse((obj) => {
+    if (obj.isMesh) {
+      console.log(`Processing mesh: ${obj.name}`);
+      
+      // Check for vertex colors
+      if (obj.geometry.attributes.color) {
+        console.log(`Mesh ${obj.name} has vertex colors!`);
+        
+        // Create a material that shows vertex colors
+        const material = createVertexColorMaterial(materialType);
+        obj.material = material;
+        
+        // Store for material switching
+        vertexColorMeshes.push(obj);
+      }
+      
+      // Always use double-sided rendering
+      obj.material.side = THREE.DoubleSide;
+      
+      // Ensure material updates
+      obj.material.needsUpdate = true;
+    }
+  });
+  
+  // Add to scene
+  scene.add(model);
+  
+  // Log all scene objects
+  console.log('Scene objects:', scene.children);
+}, 
+(xhr) => {
+  const percent = Math.round((xhr.loaded / xhr.total) * 100);
+  console.log(`${percent}% loaded`);
+},
+(error) => {
+  console.error('Error loading model:', error);
+});
+
+// Material creation function
+function createVertexColorMaterial(type) {
+  const commonProps = {
+    vertexColors: true,
+    side: THREE.DoubleSide,
+    transparent: false
+  };
+  
+  switch (type) {
+    case 'basic':
+      return new THREE.MeshBasicMaterial(commonProps);
+    case 'phong':
+      return new THREE.MeshPhongMaterial({
+        ...commonProps,
+        shininess: 30,
+        specular: 0x222222
+      });
+    case 'standard':
+    default:
+      return new THREE.MeshStandardMaterial({
+        ...commonProps,
+        roughness: 0.6,
+        metalness: 0.0
+      });
+  }
+}
+
+// UI controls
+document.getElementById('basicMaterial').addEventListener('click', () => switchMaterial('basic'));
+document.getElementById('standardMaterial').addEventListener('click', () => switchMaterial('standard'));
+document.getElementById('phongMaterial').addEventListener('click', () => switchMaterial('phong'));
+
+// Material switching function
+function switchMaterial(type) {
+  materialType = type;
+  console.log(`Switching to ${type} material`);
+  
+  // Update UI
+  document.querySelectorAll('#controls button').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`${type}Material`).classList.add('active');
+  
+  // Update materials
+  vertexColorMeshes.forEach(mesh => {
+    mesh.material = createVertexColorMaterial(type);
+    mesh.material.needsUpdate = true;
+  });
+}
+
+// Mouse movement for head rotation
+let targetX = 0;
+let targetY = 0;
+
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth) * 2 - 1;
+  const y = -(e.clientY / window.innerHeight) * 2 + 1;
+  targetX = x * 0.5;
+  targetY = y * 0.3;
+});
+
+// Window resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+  
+  // Rotate head based on mouse position
+  const head = scene.getObjectByName('gigahead');
+  if (head) {
+    head.rotation.y += (targetX - head.rotation.y) * 0.1;
+    head.rotation.x += (targetY - head.rotation.x) * 0.1;
+  }
+  
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
