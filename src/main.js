@@ -504,6 +504,8 @@ function createVertexColorMaterial(type) {
   }
 }
 
+// UI controls removed as per user request
+
 // Create two mandalas - one that follows the camera and one that stays with the head
 let mandala;
 let cameraMandala;

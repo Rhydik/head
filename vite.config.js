@@ -5,7 +5,7 @@ export default defineConfig({
   // Base path for GitHub Pages
   // Change this to match your repository name if it's not at the root
   // For example, if your repo is "username.github.io/repo-name", use "/repo-name/"
-  base: '/head3js/',
+  base: '/head/',
   
   // Build configuration
   build: {
