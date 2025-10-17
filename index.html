@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/head/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Head Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+        font-family: Arial, sans-serif;
+      }
+      
+      canvas {
+        display: block;
+      }
+      
+      #info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: white;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      
+      #controls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        display: flex;
+        gap: 10px;
+      }
+      
+      #controls-ui {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+      }
+      
+      button {
+        background: #2a2a2a;
+        color: white;
+        border: 1px solid #444;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      
+      button:hover {
+        background: #444;
+      }
+      
+      button.active {
+        background: #0066cc;
+      }
+      
+      #loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 20px;
+        border-radius: 10px;
+        font-size: 18px;
+        text-align: center;
+      }
+    </style>
+    <script type="module" crossorigin src="/head/assets/index-DcDqY5yb.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="info">3D Head Viewer<br>Click and drag to rotate view<br>Scroll to zoom</div>
+    <div id="loading">Loading model...<br><span id="progress">0%</span></div>
+    <!-- UI controls removed as per user request -->
+  </body>
+</html>
